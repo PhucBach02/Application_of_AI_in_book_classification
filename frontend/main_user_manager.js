@@ -1,6 +1,6 @@
 const API_BASE = `/backend`;
 let currentUsername = "";
-const booksPerPage = 8;
+let booksPerPage = 8;
 let currentPage = 1;
 let filteredBooks = [];
 let allBooks = [];
@@ -14,14 +14,33 @@ async function fetchUserSession() {
 
         if (data.status === 'logged_in') {
             currentUsername = data.username;
-            document.querySelector("span.text-lg").textContent = `👋 Xin chào, ${currentUsername}!`;
-        } else {
+            document.getElementById("readerName").textContent = ` ${currentUsername}`;
+        }
+         else {
             window.location.href = "/login.html";
         }
     } catch (error) {
         console.error("Lỗi khi lấy session:", error);
-        window.location.href = "/login.html";
+       window.location.href = "/login.html";
     }
+}
+
+function checkSessionOnce() {
+  fetch("/backend/con/check_session", { credentials: "include" })
+    .then(res => {
+      if (!res.ok) throw new Error("Lỗi server");
+      return res.json();
+    })
+    .then(data => {
+      if (data.status !== "logged_in") {
+        alert("Phiên đăng nhập đã hết hạn!");
+        window.location.href = "login.html";
+      }
+    })
+    .catch(err => {
+      console.error("Không xác thực được session:", err);
+      window.location.href = "login.html";
+    });
 }
 
 async function fetchUserBooks(username) {
@@ -41,12 +60,17 @@ async function fetchUserBooks(username) {
             books = JSON.parse(books);
         }
 
-        displayBooks(books, 'userBookList');
+        displayBooksforUser(books, 'userBookList');
     } catch (e) {
         console.error("Lỗi lấy sách gợi ý:", e);
     }
 }
+
+
+
 async function fetchBooks() {
+  
+   
   try {
     const res = await fetch(`${API_BASE}/res/getbook`);
     let books = await res.json();
@@ -82,14 +106,37 @@ function displayBooks(books, containerId) {
     div.className = 'bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center self-start h-auto';
 
     div.innerHTML = `
-      <img src="${book.imageUrl}" alt="${book.title}" class="w-full h-64 object-cover rounded-lg mb-3" />
-      <h3 class="text-lg font-semibold text-center">${book.title}</h3>
+      <img src="${book.imageUrl}" alt="${book.title}" class="w-full h-40 object-contain rounded-lg mb-3" />
+      <h3 class="text-sm font-semibold text-center line-clamp-2 h-14">${book.title}</h3>`
+    ;
+
+    div.addEventListener("click", () => showBookDetail(book));
+    container.appendChild(div);
+  });
+}
+function displayBooksforUser(books, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  if (!books || books.length === 0) {
+    container.innerHTML = '<p class="text-gray-500">Không có sách nào.</p>';
+    return;
+  }
+
+  books.forEach(book => {
+    const div = document.createElement('div');
+    div.className = 'bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center w-60 flex-shrink-0';
+
+    div.innerHTML = `
+      <img src="${book.imageUrl}" alt="${book.title}" class="w-full h-40 object-contain rounded-lg mb-3 " />
+      <h3 class="text-sm font-semibold text-center line-clamp-2 h-14">${book.title}</h3>
     `;
 
     div.addEventListener("click", () => showBookDetail(book));
     container.appendChild(div);
   });
 }
+
 function renderPaginationBooks(books) {
   const start = (currentPage - 1) * booksPerPage;
   const end = start + booksPerPage;
@@ -211,5 +258,16 @@ async function init() {
   await fetchUserBooks(currentUsername);
   await fetchBooks();
 }
+setInterval(() => {
+  checkSessionOnce();
+}, 310000); //5p
 
 init();
+// Slider điều hướng
+document.getElementById("prevSlide").addEventListener("click", () => {
+  document.getElementById("userBookList").scrollBy({ left: -256, behavior: 'smooth' });
+});
+
+document.getElementById("nextSlide").addEventListener("click", () => {
+  document.getElementById("userBookList").scrollBy({ left: 256, behavior: 'smooth' });
+});

@@ -451,7 +451,7 @@ async function logout() {
 
   // Lưu dữ liệu để tìm kiếm
   let allBooks = [];
-  const booksPerPage = 8;
+  let booksPerPage = 8;
   let currentPage = 1;
   let filteredBooks = [];
   async function loadBooks() {
@@ -477,8 +477,8 @@ async function logout() {
       const card = document.createElement("div");
        card.className = 'bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center self-start h-auto';
       card.innerHTML = `
-        <img src="${book.imageUrl}" alt="${book.title}" class="w-full h-64 object-cover rounded-md mb-3"/>
-        <h3 class="text-lg font-bold text-center text-[#0e141b]">${book.title}</h3>
+        <img src="${book.imageUrl}" alt="${book.title}" class="w-full h-40 object-contain rounded-md mb-3"/>
+        <h3 class="text-lg font-bold text-center text-[#0e141b] line-clamp-2 h-14">${book.title}</h3>
       `;
 
       card.addEventListener("click", () => showBookDetail(book));
