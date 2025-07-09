@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sách cho độc giả</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+            rel="stylesheet"
+            as="style"
+            onload="this.rel='stylesheet'"
+            href="https://fonts.googleapis.com/css2?display=swap&family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50 bg-cover bg-center" style="font-family: Inter, 'Noto Sans', sans-serif; background-image: url('https://source.unsplash.com/1600x900/?library,books');">
+<div class="min-h-screen flex flex-col items-center px-4 py-8">
+    <div class="w-full max-w-7xl bg-white p-10 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-bold text-[#0e141b] text-center mb-6">📚 SÁCH CHO ĐỘC GIẢ</h1>
+
+        <div class="flex justify-between items-center mb-6">
+            <span class="text-lg font-medium text-[#0e141b]">👋 Xin chào, <span id="readerName"></span>!</span>
+            <button onclick="logout()" class="bg-red-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-red-600 transition">
+                Đăng xuất
+            </button>
+        </div>
+
+        <!-- Gợi ý sách dành cho bạn -->
+        <h2 class="text-2xl font-bold text-[#0e141b] mb-4">📖 Gợi ý sách dành cho bạn</h2>
+        <div id="userBookList" class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-10"></div>
+
+        <!-- Tất cả sách -->
+        <h2 class="text-2xl font-bold text-[#0e141b] mb-4">🔍 Tất cả sách</h2>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="flex justify-center mb-6">
+            <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Tìm sách theo tiêu đề, mô tả, từ khóa..."
+                    class="w-full max-w-md rounded-xl h-12 bg-[#e7edf3] p-3 text-[#0e141b] border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+        </div>
+
+        <!-- Danh sách tất cả sách -->
+        <div id="bookList" class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto min-h-[700px]"></div>
+
+        <div class="w-full flex flex-col gap-2 mt-8">
+            <!-- Thanh điều khiển -->
+            <div class="flex justify-between items-center w-full">
+                <div></div> <!-- placeholder trái, nếu muốn thêm gì sau này -->
+
+                <!-- Nút phân trang ở giữa -->
+                <div id="pagination" class="flex flex-wrap justify-center gap-2"></div>
+
+                <!-- Dropdown bên phải -->
+                <div class="flex items-center gap-2">
+                    <label for="booksPerPageSelect" class="text-gray-700 whitespace-nowrap">Sách mỗi trang:</label>
+                    <select id="booksPerPageSelect" class="border rounded px-5 py-2 text-gray-700">
+                        <option value="8">8</option>
+                        <option value="12">12</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Modal Chi tiết sách chỉ để xem -->
+<div id="bookDetailModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
+    <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-lg relative">
+        <h2 id="detailTitle" class="text-xl font-bold mb-4"></h2>
+        <img id="detailImage" src="" alt="" class="w-full h-52 object-cover rounded-md mb-4"/>
+        <p><strong>Mô tả sách:</strong></p>
+        <p id="detailDescription" class="mb-2"></p>
+        <p><strong>📚 Thể loại:</strong> <span id="detailGenre"></span></p>
+        <p><strong>🏷️ Từ khóa:</strong> <span id="detailTags"></span></p>
+        <p><strong>🎯 Đối tượng:</strong> <span id="detailTargetAudience"></span></p>
+        <p><strong>👶 Độ tuổi:</strong> <span id="detailAgeRange"></span></p>
+        <p><strong>💡 Độ khó:</strong> <span id="detailDifficulty"></span></p>
+        <div class="flex justify-between mt-4">
+            <button id="closeDetailBtn" class="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400">Đóng</button>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="main_user_manager.js"></script>
+ <script src="auth.js"></script>
+</body>
+<script>
+
+    const bookDetailModal = document.getElementById("bookDetailModal");
+    const closeDetailBtn = document.getElementById("closeDetailBtn");
+
+    closeDetailBtn.addEventListener("click", () => {
+    bookDetailModal.classList.add("hidden");
+    });
+
+    window.addEventListener("click", (e) => {
+    if (e.target === bookDetailModal) {
+    bookDetailModal.classList.add("hidden");
+    }
+    });
+</script>
+</html>

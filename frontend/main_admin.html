@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản lý sách</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+            rel="stylesheet"
+            as="style"
+            onload="this.rel='stylesheet'"
+            href="https://fonts.googleapis.com/css2?display=swap&family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+<body class="bg-slate-50" style="font-family: Inter, 'Noto Sans', sans-serif;">
+<div class="min-h-screen flex flex-col items-center px-4 py-8">
+    <div class="w-full max-w-7xl bg-white p-10 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-bold text-[#0e141b] text-center mb-6">QUẢN LÝ SÁCH</h1>
+
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-lg font-medium text-[#0e141b]">👋 Xin chào, admin!</span>
+            <button onclick="logout()" class="bg-red-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-red-600 transition">
+                Đăng xuất
+            </button>
+        </div>
+
+        <div class="flex justify-center mb-4">
+            <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Tìm sách theo tiêu đề, mô tả, từ khóa..."
+                    class="w-full max-w-md rounded-xl h-12 bg-[#e7edf3] p-3 text-[#0e141b] border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+        </div>
+
+
+
+
+
+        <!-- Nút hiển thị form thêm sách -->
+        <div class="flex justify-center mb-4">
+            <button id="toggleAddFormBtn"
+                    class="bg-[#1980e6] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#166ec0] transition">
+                Thêm sách
+            </button>
+        </div>
+
+        <!-- Modal Form thêm sách -->
+        <div id="addBookModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
+            <div class="bg-white w-full max-w-xl rounded-xl p-6 shadow-lg relative">
+                <h2 class="text-xl font-bold mb-4">Thêm sách mới</h2>
+                <form id="addBookForm" class="space-y-4">
+                    <input type="text" id="title" placeholder="Tiêu đề" required class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <textarea id="description" placeholder="Mô tả" required class="w-full rounded-xl bg-[#e7edf3] p-3 h-24 resize-none"></textarea>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="genre" placeholder="Nhập thể loại" class="flex-1 rounded-xl h-12 bg-[#e7edf3] p-3 text-[#0e141b]" />
+                        <button type="button" id="suggestGenreAI" class="h-12 px-4 rounded-xl bg-[#1980e6] text-white font-medium hover:bg-[#166ec0] transition">Gợi ý từ AI</button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="tags" placeholder="Từ khóa (cách nhau bằng dấu phẩy)" class="flex-1 rounded-xl h-12 bg-[#e7edf3] p-3 text-[#0e141b]" />
+                        <button type="button" id="suggestTagsAI" class="h-12 px-4 rounded-xl bg-[#1980e6] text-white font-medium hover:bg-[#166ec0] transition">Gợi ý từ AI</button>
+                    </div>
+                    <input type="text" id="targetAudience" placeholder="Đối tượng" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <input type="number" id="ageRange" placeholder="Độ tuổi phù hợp (tối thiểu 5)" min="5" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <select id="difficulty" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3 text-[#0e141b]">
+                        <option value="" disabled selected>Chọn độ khó</option>
+                        <option value="Dễ">Dễ</option>
+                        <option value="Trung bình">Trung bình</option>
+                        <option value="Khó">Khó</option>
+                    </select>
+                    <input type="url" id="imageUrl" placeholder="URL hình ảnh" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" id="cancelAddBook" class="bg-gray-300 text-black px-4 py-2 rounded-xl hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-[#1980e6] text-white px-4 py-2 rounded-xl hover:bg-[#166ec0] font-bold">Xác nhận thêm</button>
+                    </div>
+                </form>
+                <button id="closeModal" class="absolute top-3 right-4 text-2xl text-gray-500 hover:text-black font-bold">&times;</button>
+            </div>
+        </div>
+
+        <!-- Modal Chi tiết sách -->
+        <div id="bookDetailModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
+            <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-lg relative">
+                <h2 id="detailTitle" class="text-xl font-bold mb-4"></h2>
+                <img id="detailImage" src="" alt="" class="w-full h-52 object-cover rounded-md mb-4"/>
+                <p><strong>Mô tả sách:</strong></p>
+                <p id="detailDescription" class="mb-2"></p>
+                <p><strong>📚 Thể loại:</strong> <span id="detailGenre"></span></p>
+                <p><strong>🏷️ Từ khóa:</strong> <span id="detailTags"></span></p>
+                <p><strong>🎯 Đối tượng:</strong> <span id="detailTargetAudience"></span></p>
+                <p><strong>👶 Độ tuổi:</strong> <span id="detailAgeRange"></span></p>
+                <p><strong>💡 Độ khó:</strong> <span id="detailDifficulty"></span></p>
+                <div class="flex justify-between mt-4">
+                    <button id="updateBookBtn" class="px-4 py-2 bg-yellow-400 rounded-xl hover:bg-yellow-500">Cập nhật</button>
+                    <button id="deleteBookBtn" class="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600">Xóa</button>
+                    <button id="closeDetailBtn" class="px-4 py-2 bg-gray-300 rounded-xl hover:bg-gray-400">Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal cập nhật sách -->
+        <div id="updateBookModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
+            <div class="bg-white w-full max-w-xl rounded-xl p-6 shadow-lg relative">
+                <h2 class="text-xl font-bold mb-4">Cập nhật sách</h2>
+                <form id="updateBookForm" class="space-y-4">
+                    <input type="text" id="updateTitle" placeholder="Tiêu đề" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <textarea id="updateDescription" placeholder="Mô tả" class="w-full rounded-xl bg-[#e7edf3] p-3 h-24 resize-none"></textarea>
+
+                    <!-- Gợi ý thể loại từ AI -->
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="updateGenre" placeholder="Thể loại" class="flex-1 rounded-xl h-12 bg-[#e7edf3] p-3" />
+                        <button type="button" id="suggestUpdateGenreAI" class="h-12 px-4 rounded-xl bg-[#1980e6] text-white font-medium hover:bg-[#166ec0] transition">Gợi ý từ AI</button>
+                    </div>
+
+                    <!-- Gợi ý từ khóa từ AI -->
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="updateTags" placeholder="Từ khóa" class="flex-1 rounded-xl h-12 bg-[#e7edf3] p-3" />
+                        <button type="button" id="suggestUpdateTagsAI" class="h-12 px-4 rounded-xl bg-[#1980e6] text-white font-medium hover:bg-[#166ec0] transition">Gợi ý từ AI</button>
+                    </div>
+
+
+                    <input type="text" id="updateTargetAudience" placeholder="Đối tượng" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <input type="number" id="updateAgeRange" placeholder="Độ tuổi" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <select id="updateDifficulty" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3">
+                        <option value="Dễ">Dễ</option>
+                        <option value="Trung bình">Trung bình</option>
+                        <option value="Khó">Khó</option>
+                    </select>
+                    <input type="url" id="updateImageUrl" placeholder="URL hình ảnh" class="w-full rounded-xl h-12 bg-[#e7edf3] p-3" />
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" id="cancelUpdateBtn" class="bg-gray-300 text-black px-4 py-2 rounded-xl hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">Cập nhật</button>
+                    </div>
+                </form>
+                <button id="closeUpdateModal" class="absolute top-3 right-4 text-2xl text-gray-500 hover:text-black font-bold">&times;</button>
+            </div>
+        </div>
+
+        <!-- Phản hồi -->
+        <div id="post-response" class="text-sm text-center text-green-600 font-medium mb-6"></div>
+
+        <!-- Danh sách sách -->
+        <h2 class="text-xl font-semibold text-[#0e141b] mb-3">Danh sách sách</h2>
+        <div id="bookList" class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto min-h-[700px]"></div>
+
+        <div class="w-full flex flex-col gap-2 mt-8">
+            <!-- Thanh điều khiển -->
+            <div class="flex justify-between items-center w-full">
+                <div></div> <!-- placeholder trái, nếu muốn thêm gì sau này -->
+
+                <!-- Nút phân trang ở giữa -->
+                <div id="pagination" class="flex flex-wrap justify-center gap-2"></div>
+
+                <!-- Dropdown bên phải -->
+                <div class="flex items-center gap-2">
+                    <label for="booksPerPageSelect" class="text-gray-700 whitespace-nowrap">Sách mỗi trang:</label>
+                    <select id="booksPerPageSelect" class="border rounded px-5 py-2 text-gray-700">
+                        <option value="8">8</option>
+                        <option value="12">12</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="main_admin_manager.js"></script>
+<script src="auth.js"></script>
+
+</body>
+<script>
+    const openModalBtn = document.getElementById("toggleAddFormBtn");
+    const modal = document.getElementById("addBookModal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const cancelBtn = document.getElementById("cancelAddBook");
+
+    openModalBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    });
+
+    closeModalBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    // Đóng modal khi click ra ngoài vùng form
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+     // ===== Xử lý đóng modal chi tiết sách =====
+  const bookDetailModal = document.getElementById("bookDetailModal");
+  const closeDetailBtn = document.getElementById("closeDetailBtn");
+
+  closeDetailBtn.addEventListener("click", () => {
+    bookDetailModal.classList.add("hidden");
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target === bookDetailModal) {
+      bookDetailModal.classList.add("hidden");
+    }
+  });
+</script>
+</html>
