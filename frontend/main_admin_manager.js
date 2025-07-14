@@ -448,6 +448,128 @@ async function logout() {
     currentPage = 1;
     renderPaginationBooks(filteredBooks);
 });
+/// nhìn thanh tiến độ và upfile thêm nhiều sách
+const uploadBtn = document.getElementById("uploadCsvBtn");
+const csvInput = document.getElementById("csvFileInput");
+
+uploadBtn.addEventListener("click", () => {
+  csvInput.click(); // Mở chọn file
+});
+
+csvInput.addEventListener("change", () => {
+  const file = csvInput.files[0];
+  if (!file) return;
+
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    alert("Hiện tại chỉ hỗ trợ định dạng .csv");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/backend/res/upload", true);
+
+
+  // Xử lý phản hồi
+  xhr.onload = function () {
+    const response = xhr.responseText.trim();
+
+    switch (response) {
+      case "true":
+        alert("Thêm sách thành công!");
+              csvInput.value = "";
+
+              // Gọi lại hàm loadBooks() để làm mới danh sách
+              if (typeof loadBooks === "function") {
+                loadBooks();
+              }
+        break;
+      case "false":
+        alert("Thêm thất bại!");
+        break;
+      case "false01":
+        alert("File rỗng!");
+        break;
+      case "false02":
+        alert("Chỉ chấp nhận định dạng .csv!");
+        break;
+      default:
+        alert("Lỗi không xác định: " + response);
+    }
+  };
+
+  xhr.onerror = function () {
+
+    alert("Upload thất bại (lỗi mạng)!");
+  };
+
+  xhr.send(formData);
+});
+///thống kê sách
+
+document.getElementById("statsBtn").addEventListener("click", async () => {
+    try {
+        // Gọi API lấy tổng số sách
+        const totalRes = await fetch("/backend/res/getquantitybook");
+        const totalBooks = await totalRes.text(); // do backend trả về int
+        document.getElementById("totalBooks").textContent = `Tổng số sách: ${totalBooks} cuốn`;
+
+        // Gọi API lấy danh sách sách phân loại
+        const genreRes = await fetch("/backend/res/getgenreBooklist", { method: "POST" });
+        const books = await genreRes.json(); // array các object { title, genre, category }
+
+        // Gom nhóm sách theo category
+        const grouped = {};
+        for (const book of books) {
+            const cat = book.category;
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(book.title);
+        }
+
+        // Hiển thị ra HTML
+        const genreStats = document.getElementById("genreStats");
+        genreStats.innerHTML = ""; // clear cũ
+
+        for (const category in grouped) {
+            const titles = grouped[category];
+            const titlesHTML = titles.map(t => `• ${t}`).join("<br>");
+
+            const block = document.createElement("div");
+            block.innerHTML = `
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <p class="font-semibold">${category}: ${titles.length} cuốn</p>
+                    <p class="text-sm mt-1 text-gray-700">${titlesHTML}</p>
+                </div>
+            `;
+            genreStats.appendChild(block);
+        }
+
+        // Hiện modal
+        const modal = document.getElementById("bookStatsModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+
+    } catch (err) {
+        console.error("Lỗi thống kê sách:", err);
+        alert("Lỗi khi thống kê sách!");
+    }
+});
+document.getElementById("closeStatsBtn").addEventListener("click", () => {
+    document.getElementById("bookStatsModal").classList.add("hidden");
+});
+
+// Đóng modal khi click ra ngoài
+window.addEventListener("click", (e) => {
+    const modal = document.getElementById("bookStatsModal");
+    if (e.target === modal) {
+        modal.classList.add("hidden");
+    }
+});
+
 
   // Lưu dữ liệu để tìm kiếm
   let allBooks = [];

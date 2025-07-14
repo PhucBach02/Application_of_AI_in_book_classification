@@ -1,7 +1,10 @@
 package vn.doan;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 @RestController
@@ -66,6 +69,66 @@ public class restcontroller {
     return sql.getAllBooks();
     }
 
+    @PostMapping("/upload")
+    public String uploadCsvFile(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return "false01";// lỗi file rỗng
+        }
+
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.toLowerCase().endsWith(".csv")) {
+            return "false02";// chỉ nhận csv
+        }
+
+        sql_function sql=new sql_function();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            String line;
+            boolean isFirstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+                if (isFirstLine) {
+                    // Bỏ qua dòng tiêu đề
+                    isFirstLine = false;
+                    continue;
+                }
+                // Tách dòng theo dấu phẩy, giả sử CSV chuẩn
+                String[] fields = line.split(",", -1); // -1 để giữ các trường trống
+
+                // Kiểm tra số lượng tối thiểu 2 trường: title và description
+                if (fields.length < 2 || fields[0].trim().isEmpty() || fields[1].trim().isEmpty()) {
+                    continue; // Bỏ qua dòng không hợp lệ
+                }
+
+                // Lấy các trường, có thể bị thiếu nên phải kiểm tra
+                String title = fields[0].trim();
+                String description = fields[1].trim();
+                String genre;
+                if (fields.length > 2 && !fields[2].trim().isEmpty()) {
+                    genre = fields[2].trim();  // Nếu trường genre có dữ liệu hợp lệ
+                } else {
+                    genre = openAi.classifyBook(description);  // Nếu không, gọi API để phân loại genre
+                }
+                String tags;
+                if (fields.length > 3 && !fields[3].trim().isEmpty()) {
+                    tags = fields[3].trim();  // Nếu trường tags có dữ liệu hợp lệ
+                } else {
+                    tags = openAi.suggestTags(description);  // Nếu không, gọi API để gợi ý tags
+                }
+                String targetAudience = fields.length > 4 ? fields[4].trim() : "";
+                String ageRange = fields.length > 5 ? fields[5].trim() : "";
+                String difficulty = fields.length > 6 ? fields[6].trim() : "";
+                String imageUrl = fields.length > 7 ? fields[7].trim() : "";
+
+                sql.insertBook(title,description,genre,tags,targetAudience,ageRange,difficulty,imageUrl);
+            }
+
+        } catch (Exception e) {
+            return "false";
+        }
+
+        return "true";
+    }
+
     @PostMapping("/getuser")
     public String getuser(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
@@ -128,5 +191,18 @@ public class restcontroller {
             return "false";
         }
 
+    }
+
+    @GetMapping("/getquantitybook")
+    public int getquantitybook() {
+        sql_function sql = new sql_function();
+        //  System.out.println("thông tin sách:"+sql.suggestBooksForUser(username));
+        return sql.getTotalBooks();
+    }
+    @PostMapping("/getgenreBooklist")
+    public String getgenreBooklist() {
+        sql_function sql = new sql_function();
+        //  System.out.println("thông tin sách:"+sql.suggestBooksForUser(username));
+        return sql.getBooksByGenreCategory();
     }
 }

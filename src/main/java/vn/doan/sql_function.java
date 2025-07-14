@@ -9,6 +9,8 @@ import java.text.Normalizer;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 interface sql_manager {
     // xài chung
@@ -48,7 +50,8 @@ interface sql_manager {
             String ageRange,
             String difficulty,
             String imageUrl);
-}
+     int getTotalBooks();// tổng số sách
+    }
 public class sql_function implements sql_manager{
     private static final String jdbcURL = System.getenv("DB_URL");
     private static final String username = System.getenv("DB_USER");
@@ -615,6 +618,25 @@ public static String removeAccents(String input) {
         }
     }
 
+
+    public int getTotalBooks() {
+        String sql = "SELECT COUNT(*) FROM book";
+        try (Connection conn = DriverManager.getConnection(jdbcURL, username, password);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            f.logException(e);
+        }
+        return 0;
+    }
+
+
 //    public boolean checkIfTitleExists(String title) {
 //        String checkTitleQuery = "SELECT COUNT(*) FROM book WHERE title = ?";
 //        try (Connection connection = DriverManager.getConnection(jdbcURL, username, password);
@@ -721,6 +743,71 @@ public String getAllBooks() {
     Gson gson = new Gson();
     return gson.toJson(books);
 }
+
+    public String getBooksByGenreCategory() {
+        String sql = "SELECT title, genre FROM book";
+        JSONArray resultArray = new JSONArray();
+
+        try (Connection conn = DriverManager.getConnection(jdbcURL, username, password);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String title = rs.getString("title");
+                String genreRaw = rs.getString("genre") != null ? rs.getString("genre").toLowerCase().trim() : "";
+
+                Set<String> categories = new HashSet<>();
+
+                // Tách các thể loại nếu có nhiều
+                String[] genres = genreRaw.split("\\s*,\\s*");
+                if (genres.length >= 2) {
+                    categories.add("Nhiều thể loại");
+                }
+
+                // Xét từng nhóm lớn
+                if (genreRaw.contains("kinh dị")) {
+                    categories.add("Kinh dị");
+                }
+                if (genreRaw.contains("trinh thám")) {
+                    categories.add("Trinh thám");
+                }
+                if (genreRaw.contains("tình yêu") || genreRaw.contains("tình cảm")||genreRaw.contains("lãng mạn")) {
+                    categories.add("Tình yêu");
+                }
+                if (genreRaw.contains("lịch sử")) {
+                    categories.add("Lịch sử");
+                }
+                if (genreRaw.contains("khoa học")) {
+                    categories.add("Khoa học");
+                }
+                if (genreRaw.contains("thiếu nhi")) {
+                    categories.add("Thiếu nhi");
+                }
+
+                // Nếu không khớp thể loại nào thì thêm vào "Thể loại khác"
+                if (categories.isEmpty()) {
+                    categories.add("Thể loại khác");
+                }
+
+                // Thêm từng category riêng biệt
+                for (String cat : categories) {
+                    JSONObject bookJson = new JSONObject();
+                    bookJson.put("title", title);
+                    bookJson.put("genre", genreRaw);
+                    bookJson.put("category", cat);
+                    resultArray.put(bookJson);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            f.logException(e);
+        }
+
+        return resultArray.toString();
+    }
+
+
 
 //
 //    public boolean deleteBook(String title) {

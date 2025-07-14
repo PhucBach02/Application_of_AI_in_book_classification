@@ -32,12 +32,29 @@
     <div class="w-full max-w-7xl bg-white p-10 rounded-2xl shadow-lg">
         <div class="flex justify-between items-center mb-6">
             <!-- Nút hiển thị form thêm sách -->
-            <div class="flex justify-center items-center">
-                <button id="toggleAddFormBtn"
-                        class="bg-[#1980e6] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#166ec0] transition">
-                    Thêm sách
+            <div class="flex items-start flex-col">
+                <div class="flex items-center space-x-2">
+                    <button id="toggleAddFormBtn"
+                            class="bg-[#1980e6] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#166ec0] transition">
+                        Thêm sách
+                    </button>
+
+                    <button id="uploadCsvBtn"
+                            class="bg-[#1980e6] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#166ec0] transition">
+                        Thêm sách từ file
+                    </button>
+
+                    <!-- Input file ẩn -->
+                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" />
+                </div>
+
+                <!-- ✅ Nút Thống kê nằm NGAY DƯỚI -->
+                <button id="statsBtn"
+                        class="mt-2 bg-[#1980e6] text-white font-bold py-2 px-6 rounded-xl hover:bg-[#1980e6] transition">
+                    Thống kê sách
                 </button>
-            </div> 
+            </div>
+
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 text-lg font-medium text-[#0e141b]">
@@ -122,6 +139,9 @@
             </div>
         </div>
 
+
+
+
         <!-- Modal cập nhật sách -->
         <div id="updateBookModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
             <div class="bg-white w-full max-w-xl rounded-xl p-6 shadow-lg relative">
@@ -163,6 +183,19 @@
         <!-- Phản hồi -->
         <div id="post-response" class="text-sm text-center text-green-600 font-medium mb-6"></div>
 
+        <!-- 📊 Modal Thống kê Sách -->
+        <div id="bookStatsModal" class="fixed inset-0 bg-black/50 z-50 hidden justify-center items-center">
+            <div class="bg-white w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl p-6 shadow-lg relative">
+                <button id="closeStatsBtn" class="absolute top-3 right-4 text-2xl text-gray-500 hover:text-red-600 font-bold">&times;</button>
+                <h3 class="text-2xl font-bold mb-4 text-center">📊 Thống kê sách</h3>
+                <p id="totalBooks" class="font-semibold mb-4">Tổng số sách: ...</p>
+                <div id="genreStats" class="space-y-4"></div>
+            </div>
+        </div>
+
+
+
+
         <!-- Danh sách sách -->
         <h2 class="text-xl font-semibold text-[#0e141b] mb-3">Danh sách sách</h2>
         <div id="bookList" class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto min-h-[600px]"></div>
@@ -188,6 +221,8 @@
         </div>
     </div>
 </div>
+
+
 
 <script src="main_admin_manager.js"></script>
 <script src="auth.js"></script>
